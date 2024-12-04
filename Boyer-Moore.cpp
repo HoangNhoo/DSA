@@ -1,80 +1,90 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
 
-vector<int> badCharacterHeuristic(const string &pattern) {
-    // tim vi tri xuat hien cuoi cung cua cac ki tu trong pattern
-    const int ALPHABET_SIZE = 256;
-    vector<int> badChar(ALPHABET_SIZE, -1);
+#define NO_OF_CHARS 256
 
-    for (int i = 0; i < pattern.length(); i++) {
-        badChar[pattern[i]] = i;
-    }
-    
-    return badChar;
-}
+// Preprocessing for the strong good suffix rule
+void preprocess_strong_suffix(vector<int>& shift, vector<int>& bpos, const string& pat, int len_pat)
+{
+    int id_current_prefix = len_pat, id_current_suffix = len_pat + 1;
+    bpos[id_current_prefix] = id_current_suffix;
 
-vector<int> goodSuffixHeuristic(const string &pattern) {
-    int m = pattern.length();
-    vector<int> suffix(m, -1);
-    vector<int> borderPos(m + 1, 0);
-
-    // Tim cac suffix cua pattern
-    for (int i = m - 1; i >= 0; i--) {
-        int j = i;
-        while (j >= 0 && pattern[j] == pattern[m - 1 - (i - j)]) {
-            j--;
+    while (id_current_prefix > 0) {
+        // If characters at positions i-1 and j-1 are different, continue searching to the right
+        while (id_current_suffix <= len_pat && pat[id_current_prefix - 1] != pat[id_current_suffix - 1]) {
+            if (shift[id_current_suffix] == 0) {
+                shift[id_current_suffix] = id_current_suffix - id_current_prefix; 
+            }
+            id_current_suffix = bpos[id_current_suffix];
         }
-        suffix[i] = j + 1; 
+        id_current_prefix--;
+        id_current_suffix--;
+        bpos[id_current_prefix] = id_current_suffix; 
     }
-
-    for (int i = 0; i < m; i++) {
-        cout << suffix[i] << " ";
-        borderPos[suffix[i]] = i;
-    }
-
-    return borderPos;
 }
 
-// Hàm tìm kiếm Boyer-Moore
-void boyerMooreSearch(const string &text, const string &pattern) {
-    int n = text.length();
-    int m = pattern.length();
-
-    if (m > n) {
-        cout << "Pattern is longer than text." << endl;
-        return;
+// Preprocessing for case 2 and case 3
+void preprocess_case_2_3(vector<int>& shift, vector<int>& bpos, const string& pat, int m)
+{
+    int j = bpos[0];
+    for (int i = 0; i <= m; i++) {
+        // If shift[i] is 0, we need to apply case 2 or case 3
+        if (shift[i] == 0)
+            shift[i] = j;
+        if (i == j)
+            j = bpos[j]; // If i surpasses j, we find the next bounding box
     }
+}
 
-    vector<int> badChar = badCharacterHeuristic(pattern);
-    vector<int> goodSuffix = goodSuffixHeuristic(pattern);
+// Boyer-Moore Bad Character Heuristic
+void badCharHeuristic(string str, int size, int badchar[NO_OF_CHARS]) {
+    int i;
+    // Initializing all occurrences as -1
+    for (i = 0; i < NO_OF_CHARS; i++)
+        badchar[i] = size;
 
+    // Fill the actual value of last occurrence of a character
+    for (i = 0; i < size; i++)
+        badchar[(int)str[i]] = size - i - 1;
+}
+
+// Boyer-Moore Search Algorithm
+vector<int> boyerMooreSearch(string txt, string pat) {
+    int m = pat.size();
+    int n = txt.size();
+    int badchar[NO_OF_CHARS];
+    vector<int> bpos(m + 1), shift(m + 1, 0);
+	vector<int> result;
+
+    // Fill the bad character array by calling the preprocessing function
+    badCharHeuristic(pat, m, badchar);
+	// Fill the good suffix array
+	preprocess_strong_suffix(shift, bpos, pat, m);
+    preprocess_case_2_3(shift, bpos, pat, m);
     int s = 0;
     while (s <= (n - m)) {
         int j = m - 1;
-
-        while (j >= 0 && pattern[j] == text[s + j]) {
-            j--;
-        }
-
+        while (j >= 0 && pat[j] == txt[s + j]) j--;
         if (j < 0) {
-            cout << "Pattern found at index " << s << endl;
-            s += (s + m < n) ? m - goodSuffix[0] : 1;
+            result.push_back(s);  // Pattern found at index s
+            s += max(shift[0],(s + m < n) ? max(1, badchar[txt[s + m]]) : 1);
         } else {
-            s += max(1, j - badChar[text[s + j]]);
+            s += max(shift[j + 1],max(1, badchar[txt[s + j]]));
         }
     }
+
+    return result;
 }
 
 int main() {
-    string text = "ABAAABCD";
-    string pattern = "ABC";
-    cout << "Text: " << text << endl;
-    cout << "Pattern: " << pattern << endl;
-    boyerMooreSearch(text, pattern);
-
+    string txt = "ABCACAABCD";
+    string pat = "ABC";
+    int n = txt.size();
+    int m = pat.size();
+    vector<int> bmResult = boyerMooreSearch(txt, pat);
+    cout << "Boyer-Moore Result: ";
+    for (int idx : bmResult) {
+        cout << idx << " ";
+    }
     return 0;
 }
