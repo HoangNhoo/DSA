@@ -69,14 +69,15 @@ vector<int> boyerMooreSearch(string txt, string pat) {
     return result;
 }
 
-// KMP Preprocessing (LPS array)
-void computeLPSArray(const string& pat, vector<int>& lps) {
-    int m = pat.size();
-    int length = 0;
-    lps[0] = 0;
+// Function to build the longest prefix suffix (LPS) array
+vector<int> buildLPSArray(const string &pattern) {
+    int m = pattern.length();
+    vector<int> lps(m, 0); // LPS array to hold the longest prefix suffix values
+    int length = 0; // length of the previous longest prefix suffix
+
     int i = 1;
     while (i < m) {
-        if (pat[i] == pat[length]) {
+        if (pattern[i] == pattern[length]) {
             length++;
             lps[i] = length;
             i++;
@@ -89,26 +90,29 @@ void computeLPSArray(const string& pat, vector<int>& lps) {
             }
         }
     }
+    return lps;
 }
 
-// KMP Search Function
-vector<int> kmpSearch(const string& txt, const string& pat) {
-    int n = txt.size();
-    int m = pat.size();
-    vector<int> lps(m);
-    vector<int> result;
-    computeLPSArray(pat, lps);
+// KMP algorithm to find all occurrences of the pattern in the text
+vector<int> KMPSearch(const string &text, const string &pattern) {
+    int n = text.length();
+    int m = pattern.length();
 
-    int i = 0, j = 0;
+    vector<int> lps = buildLPSArray(pattern);
+    vector<int> result; // to store the indices where pattern is found
+
+    int i = 0; // index for text
+    int j = 0; // index for pattern
     while (i < n) {
-        if (pat[j] == txt[i]) {
+        if (pattern[j] == text[i]) {
             i++;
             j++;
         }
+
         if (j == m) {
-            result.push_back(i - j);
+            result.push_back(i - j); // pattern found at index i - j
             j = lps[j - 1];
-        } else if (i < n && pat[j] != txt[i]) {
+        } else if (i < n && pattern[j] != text[i]) {
             if (j != 0) {
                 j = lps[j - 1];
             } else {
@@ -137,69 +141,72 @@ vector<int> naiveSearch(const string& txt, const string& pat) {
     return result;
 }
 
-// Function to generate random test case
-void generateRandomTest(string &txt, string &pat, int n, int m) {
-    string chars = "ABABCD";
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, chars.size() - 1);
-
-    // Generate random text of length n
-    txt.clear();
-    for (int i = 0; i < n; i++) {
-        txt += chars[dis(gen)];
-    }
-
-    // Generate random pattern of length m
-    pat.clear();
-    for (int i = 0; i < m; i++) {
-        pat += chars[dis(gen)];
-    }
-}
-
 // Function to measure and compare the execution time of all three algorithms
-void measureSearchTimes(int K, int n, int m, string sample_chars) {
+void measureSearchTimes(int K, const string& txt, const string& pat) {
+    vector<pair<string, double>> results;
+
+    // Measure average time for each approach
     double naiveTime = 0.0, boyerMooreTime = 0.0, kmpTime = 0.0;
 
     for (int i = 0; i < K; i++) {
-        string txt, pat;
-        generateRandomTest(txt, pat, n, m);  // Generate random text and pattern
-
         // Measure time for Naive Search
         auto start = chrono::high_resolution_clock::now();
-        naiveSearch(txt, pat);
+        int a = naiveSearch(txt, pat).size();
         auto end = chrono::high_resolution_clock::now();
         chrono::duration<double> naiveDuration = end - start;
         naiveTime += naiveDuration.count();
 
         // Measure time for Boyer-Moore Search
         start = chrono::high_resolution_clock::now();
-        boyerMooreSearch(txt, pat);
+        int b = boyerMooreSearch(txt, pat).size();
         end = chrono::high_resolution_clock::now();
         chrono::duration<double> boyerMooreDuration = end - start;
         boyerMooreTime += boyerMooreDuration.count();
 
         // Measure time for KMP Search
         start = chrono::high_resolution_clock::now();
-        kmpSearch(txt, pat);
+        int c = KMPSearch(txt, pat).size();
         end = chrono::high_resolution_clock::now();
         chrono::duration<double> kmpDuration = end - start;
         kmpTime += kmpDuration.count();
+        if (a != b || b != c) {
+            cout << "Error: Results mismatch between Naive, Boyer-Moore, and KMP approaches!" << endl;
+        }
     }
 
     // Calculate mean times
-    cout << "Average Naive Search Time over " << K << " loops: " << naiveTime / K << " seconds" << endl;
-    cout << "Average Boyer-Moore Search Time over " << K << " loops: " << boyerMooreTime / K << " seconds" << endl;
-    cout << "Average KMP Search Time over " << K << " loops: " << kmpTime / K << " seconds" << endl;
+    results.push_back({"Naive Search", naiveTime / K});
+    results.push_back({"Boyer-Moore Search", boyerMooreTime / K});
+    results.push_back({"KMP Search", kmpTime / K});
+
+    // Sort results by time (ascending)
+    sort(results.begin(), results.end(), [](const pair<string, double>& a, const pair<string, double>& b) {
+        return a.second < b.second;
+    });
+
+    // Display ranking
+    cout << "Search Algorithm Ranking (Fastest to Slowest):\n";
+    for (const auto& res : results) {
+        cout << res.first << " - Average Time: " << res.second << " seconds\n";
+    }
 }
 
 int main() {
-    int K = 5;    // Number of iterations to measure
-    int n = 10000; // Length of text
-    int m = 8;    // Length of pattern
-    string sample_chars = "ABABCD";  // Characters for generating text
+    // Read the DNA sequence from file
+    ifstream file("dna_sequence.txt");
+    string txt;
+    if (file.is_open()) {
+        getline(file, txt, '\0');  // Read the whole file into txt
+        file.close();
+    } else {
+        cerr << "Failed to open the file!" << endl;
+        return 1;
+    }
 
-    measureSearchTimes(K, n, m, sample_chars);
+    string pat = "CACAC";  // The pattern to search for
+    int K = 100;  // Number of iterations to measure
+
+    measureSearchTimes(K, txt, pat);
 
     return 0;
 }
