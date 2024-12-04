@@ -190,11 +190,6 @@ int main() {
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> naiveDuration = end - start;
     cout << "Naive Search Time: " << naiveDuration.count() << " seconds" << endl;
-    // cout << "Naive Search Matches: ";
-    // for (int idx : naiveResult) {
-    //     cout << idx << " ";
-    // }
-    // cout << endl;
 
     // Measure time for Boyer-Moore Search
     start = chrono::high_resolution_clock::now();
@@ -202,23 +197,13 @@ int main() {
     end = chrono::high_resolution_clock::now();
     chrono::duration<double> boyerMooreDuration = end - start;
     cout << "Boyer-Moore Search Time: " << boyerMooreDuration.count() << " seconds" << endl;
-    // cout << "Boyer-Moore Search Matches: ";
-    // for (int idx : boyerMooreResult) {
-    //     cout << idx << " ";
-    // }
-    // cout << endl;
-
     // Measure time for KMP Search
     start = chrono::high_resolution_clock::now();
     vector<int> kmpResult = kmpSearch(txt, pat);
     end = chrono::high_resolution_clock::now();
     chrono::duration<double> kmpDuration = end - start;
     cout << "KMP Search Time: " << kmpDuration.count() << " seconds" << endl;
-    // cout << "KMP Search Matches: ";
-    // for (int idx : kmpResult) {
-    //     cout << idx << " ";
-    // }
-    // cout << endl;
+
 
     return 0;
 }
