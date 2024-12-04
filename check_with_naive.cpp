@@ -2,6 +2,23 @@
 using namespace std;
 
 #define NO_OF_CHARS 256
+// Naive Pattern Matching Algorithm
+vector<int> naiveSearch(string txt, string pat) {
+    int n = txt.size();
+    int m = pat.size();
+    vector<int> result;
+    
+    // Traverse the text and compare with the pattern
+    for (int i = 0; i <= n - m; i++) {
+        int j = 0;
+        while (j < m && txt[i + j] == pat[j])
+            j++;
+        if (j == m) {
+            result.push_back(i);  // Pattern found at index i
+        }
+    }
+    return result;
+}
 
 // Preprocessing for the strong good suffix rule
 void preprocess_strong_suffix(vector<int>& shift, vector<int>& bpos, const string& pat, int len_pat)
@@ -36,23 +53,6 @@ void preprocess_case_2_3(vector<int>& shift, vector<int>& bpos, const string& pa
     }
 }
 
-// Naive Pattern Matching Algorithm
-vector<int> naiveSearch(string txt, string pat) {
-    int n = txt.size();
-    int m = pat.size();
-    vector<int> result;
-    
-    // Traverse the text and compare with the pattern
-    for (int i = 0; i <= n - m; i++) {
-        int j = 0;
-        while (j < m && txt[i + j] == pat[j])
-            j++;
-        if (j == m) {
-            result.push_back(i);  // Pattern found at index i
-        }
-    }
-    return result;
-}
 
 // Boyer-Moore Bad Character Heuristic
 void badCharHeuristic(string str, int size, int badchar[NO_OF_CHARS]) {
