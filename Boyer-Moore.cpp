@@ -89,7 +89,7 @@ int main() {
         cin >> pat;
     } else if (option == 2) {
         string filename;
-        cout << "Enter file name (input.txt): ";
+        cout << "Enter file name (input#.txt): ";
         cin >> filename;
 
         ifstream file(filename);
