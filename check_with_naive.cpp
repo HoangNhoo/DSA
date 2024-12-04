@@ -55,16 +55,20 @@ void preprocess_case_2_3(vector<int>& shift, vector<int>& bpos, const string& pa
 
 
 // Boyer-Moore Bad Character Heuristic
-void badCharHeuristic(string str, int size, int badchar[NO_OF_CHARS]) {
+void badCharHeuristic(string str, int size, int badchar[NO_OF_CHARS])
+{
     int i;
-    // Initializing all occurrences as -1
+ 
+    // Initialize all occurrences as -1
     for (i = 0; i < NO_OF_CHARS; i++)
-        badchar[i] = size;
-
-    // Fill the actual value of last occurrence of a character
+        badchar[i] = -1;
+ 
+    // Fill the actual value of last occurrence
+    // of a character
     for (i = 0; i < size; i++)
-        badchar[(int)str[i]] = size - i - 1;
+        badchar[(int)str[i]] = i;
 }
+
 
 // Boyer-Moore Search Algorithm
 vector<int> boyerMooreSearch(string txt, string pat) {
@@ -85,9 +89,9 @@ vector<int> boyerMooreSearch(string txt, string pat) {
         while (j >= 0 && pat[j] == txt[s + j]) j--;
         if (j < 0) {
             result.push_back(s);  // Pattern found at index s
-            s += max(shift[0],(s + m < n) ? max(1, badchar[txt[s + m]]) : 1);
+            s += max(shift[0], (s + m < n) ? m - badchar[txt[s + m]] : 1);
         } else {
-            s += max(shift[j + 1],max(1, badchar[txt[s + j]]));
+            s += max(shift[j + 1],max(1, j - badchar[txt[s + j]]));
         }
     }
 
@@ -96,7 +100,7 @@ vector<int> boyerMooreSearch(string txt, string pat) {
 
 // Generate random text and pattern
 void generateRandomTest(string &txt, string &pat, int n, int m) {
-    string chars = "ABCDEFG";
+    string chars = "ABC";
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> dis(0, chars.size() - 1);
@@ -117,8 +121,8 @@ void generateRandomTest(string &txt, string &pat, int n, int m) {
 int main() {
 	while(true){
 		// Set random test parameters
-		int n = 1000;  // Length of text
-		int m = 20;     // Length of pattern
+		int n = 20;  // Length of text
+		int m = 5;     // Length of pattern
 
 		// Generate random test case
 		string txt, pat;
