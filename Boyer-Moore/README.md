@@ -1,25 +1,9 @@
-# DSA
+# Cách dùng chương trình
 
-## Boyer-Moore.cpp
+Chạy main.cpp lúc này có 2 sự lựa  chọn:
++ Lựa chọn 1: nhập input từ bàn phím
++ Lựa chọn 2: đọc file
 
-just a simple source code for Boyer and Moore:
+Với lựa chọn 1 hãy nhập lần lượt text và pattern
 
-there are 2 options in main:
-1 for manually input string and pattern
-2 for input from file
-
-There are 5 files sample input:
-
-+ input1.txt: large string, small pattern
-+ input2.txt: repeated pattern
-+ input3.txt: fully matched pattern
-+ input4.txt: no matched pattern
-+ input5.txt: large string, large pattern
-
-## check_with_naive.cpp
-
-make sure the implemented code is correct by comparing it with naive algorithm
-
-## compare.cpp
-
-compare the time complexity between Boyer-Moore, KMP and Naive algorithm
+Với lựa chọn 2 hãy nhập tên file muốn đọc, file yêu cầu có duy nhất 2 dòng, dòng đầu là text, dòng 2 là pattern
